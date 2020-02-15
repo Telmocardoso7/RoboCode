@@ -22,10 +22,10 @@ public class OdometerSA extends AdvancedRobot {
 	
 	private long startingTime;
 	private boolean running = false, 
-			lockState1 = false, 
-			lockState2 = false, 
-			lockState3 = false, 
-			lockState4 = false, 
+			state1 = false, 
+			state2 = false, 
+			state3 = false, 
+			state4 = false, 
 			finishing = false;
 
     private class Position<T> {
@@ -38,8 +38,8 @@ public class OdometerSA extends AdvancedRobot {
 	    }
     }
     
-    private List<Position<Double>> listOfpositions = new ArrayList<Position<Double>>();	
-    private List<Double> listOfquadrants = new ArrayList<Double>();
+    private List<Position<Double>> positions = new ArrayList<Position<Double>>();	
+    private List<Double> quadrants = new ArrayList<Double>();
 
 
 	private double totaldistance = 0, lastX = 0,lastY = 0;
@@ -49,13 +49,13 @@ public class OdometerSA extends AdvancedRobot {
 	@Override
 	public void run()
 	{
-		this.lockState1 = true; //By default the first state to be executed.
+		this.state1 = true; //By default the first state to be executed.
 		while(true)
 		{
 			if(this.running)
 			{
 				long currentTime = (new Date().getTime())/1000; //getting the current time from when this method has been called.
-				if((currentTime - this.startingTime) > 10) //This method will execute after 10 seconds, from robot hitting (18,18) position.
+				if((currentTime - this.startingTime) > 5) //This method will execute after 10 seconds, from robot hitting (18,18) position.
 				{
 					this.addCustomEvent(odometer); //Starting the odometer from library.
 					
@@ -131,7 +131,7 @@ public class OdometerSA extends AdvancedRobot {
 			this.lastY = currentY;
 			if(this.finishing)
 			{
-				out.println("Moved " + this.totaldistance + "meters during this race");
+				out.println("Moved " + this.totaldistance + " meters during this race");
 				this.totaldistance = 0;
 				this.finishing = false;
 			}
@@ -170,21 +170,21 @@ public class OdometerSA extends AdvancedRobot {
 	      	
 	      	//Saving enemy position variables in a list of object class.
 	      	//Only enemy positions from different quadrants, that were never reached will be saved.
-	      	if((getQuadrant(getX(), getY()) != getQuadrant(enemyX, enemyY)) && (!listOfquadrants.contains((double)getQuadrant(enemyX, enemyY))))
-				this.listOfpositions.add(new Position<Double>(enemyX, enemyY, enemyDistance, angleToEnemyRadians));
+	      	if((getQuadrant(getX(), getY()) != getQuadrant(enemyX, enemyY)) && (!quadrants.contains((double)getQuadrant(enemyX, enemyY))))
+				this.positions.add(new Position<Double>(enemyX, enemyY, enemyDistance, angleToEnemyRadians));
 		}
 	}
 	
 	
 	private void firstState()
 	{
-		if(this.lockState1)
+		if(this.state1)
 		{
 			turnRadarRight(360); //Performing a new scanning to search other robots.
 			if(getRadarTurnRemaining() == 0)
 			{
-				this.lockState1 = false;
-				this.lockState2 = true;
+				this.state1 = false;
+				this.state2 = true;
 			}
 		}
 	}
@@ -193,17 +193,17 @@ public class OdometerSA extends AdvancedRobot {
 	
 	private void secondState()
 	{
-		if(this.lockState2)
+		if(this.state2)
 		{
 		
 			move(); //Moving to the nearest robot point.
 			if(getDistanceRemaining() == 0)
 			{
 				if(this.quadrant != 3)
-					this.lockState3 = true;
+					this.state3 = true;
 				else
-					this.lockState4 = true;
-				this.lockState2 = false;
+					this.state4 = true;
+				this.state2 = false;
 			}
 		}
 		
@@ -212,14 +212,14 @@ public class OdometerSA extends AdvancedRobot {
 	
 	private void thirdState()
 	{
-		if(this.lockState3)
+		if(this.state3)
 		{
 			turn(); //changing direction according the nearest robot
 			if(getTurnRemaining() == 0)
 			{
-				this.lockState3 = false;
-				this.lockState1 = true;
-				this.listOfpositions.clear(); //Cleaning positions list.
+				this.state3 = false;
+				this.state1 = true;
+				this.positions.clear(); //Cleaning positions list.
 			}
 		}
 	}
@@ -227,17 +227,17 @@ public class OdometerSA extends AdvancedRobot {
 	
 	private void fourthState()
 	{
-		if(this.lockState4)
+		if(this.state4)
 		{
 			this.running = false; //Going back to the initial point.
 			if(getDistanceRemaining() == 0)
 			{
 				//Cleaning old lists.
-				this.listOfpositions.clear();
-				this.listOfquadrants.clear();
+				this.positions.clear();
+				this.quadrants.clear();
 				//adjusting states to a new cycle.
-				this.lockState4 = false;
-				this.lockState1 = true;
+				this.state4 = false;
+				this.state1 = true;
 				this.finishing = true;
 			}
 		}
@@ -245,9 +245,9 @@ public class OdometerSA extends AdvancedRobot {
 	
 	private void turn()
 	{
-		double min_distance = this.listOfpositions.get(0).distance;
-		double angle = this.listOfpositions.get(0).angle;
-		for (Position<Double> position: this.listOfpositions) {
+		double min_distance = this.positions.get(0).distance;
+		double angle = this.positions.get(0).angle;
+		for (Position<Double> position: this.positions) {
 			if(position.distance < min_distance)
 			{	
 				min_distance = position.distance;
@@ -263,10 +263,10 @@ public class OdometerSA extends AdvancedRobot {
 	private void move()
 	{
 	
-		double min_distance = this.listOfpositions.get(0).distance;
-	    double x = this.listOfpositions.get(0).x;
-		double y = this.listOfpositions.get(0).y;
-		for (Position<Double> position: this.listOfpositions) {
+		double min_distance = this.positions.get(0).distance;
+	    double x = this.positions.get(0).x;
+		double y = this.positions.get(0).y;
+		for (Position<Double> position: this.positions) {
 			if(position.distance < min_distance)
 			{	
 				min_distance = position.distance;
@@ -276,19 +276,21 @@ public class OdometerSA extends AdvancedRobot {
 		}
 		
 		this.quadrant = getQuadrant(x, y);
-		listOfquadrants.add((double)this.quadrant);
-	    if(this.quadrant == 1)
-	    {
-	    	goTo(x-(2*getWidth()), y+(2*getHeight()));
-	    }
-	    if (this.quadrant == 2)
-	    {
-	    	goTo(x+(2*getWidth()), y+(2*getHeight()));
-	    }
-	    if (this.quadrant == 3)
-	    {
-	    	goTo(x+(2*getWidth()), y-(2*getHeight()));
-	    }	
+		quadrants.add((double)this.quadrant);
+		
+		switch(this.quadrant) {
+		case 1:
+			goTo(x-(2*getWidth()), y+(2*getHeight()));
+			break;
+		case 2:
+			goTo(x+(2*getWidth()), y+(2*getHeight()));
+			break;
+		case 3:
+			goTo(x+(2*getWidth()), y-(2*getHeight()));
+			break;
+		default:
+			break;
+		}
 	}
 	
 	private int getQuadrant(double x, double y)
