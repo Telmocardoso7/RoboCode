@@ -41,7 +41,6 @@ public class OdometerSA extends AdvancedRobot {
     private List<Position<Double>> positions = new ArrayList<Position<Double>>();	
     private List<Double> quadrants = new ArrayList<Double>();
 
-
 	private double totaldistance = 0, lastX = 0,lastY = 0;
 	private int quadrant = 0;
 	
@@ -55,7 +54,7 @@ public class OdometerSA extends AdvancedRobot {
 			if(this.running)
 			{
 				long currentTime = (new Date().getTime())/1000; //getting the current time from when this method has been called.
-				if((currentTime - this.startingTime) > 5) //This method will execute after 10 seconds, from robot hitting (18,18) position.
+				if((currentTime - this.startingTime) > 5) //Starts a wait time after robot hits (18,18)
 				{
 					this.addCustomEvent(odometer); //Starting the odometer from library.
 					
@@ -70,7 +69,6 @@ public class OdometerSA extends AdvancedRobot {
 				goTo(18, 18);
 			}
 			execute();
-		
 		}
 	}
 	
@@ -121,7 +119,7 @@ public class OdometerSA extends AdvancedRobot {
 		double currentX = getX();
 		double currentY = getY();
 		
-		//################REGION BEGGINS##################
+		//################start
 		//Personal odometer code.
 		double distance = distanceBetween2Points(this.lastX, this.lastY, currentX, currentY); 
 		if(this.running)
@@ -131,14 +129,14 @@ public class OdometerSA extends AdvancedRobot {
 			this.lastY = currentY;
 			if(this.finishing)
 			{
-				out.println("Moved " + this.totaldistance + " meters during this race");
+				out.println("Moved " + this.totaldistance + " pixels during this race");
 				this.totaldistance = 0;
 				this.finishing = false;
 			}
 		}
-		//################REGION ENDS####################
+		//################end
 		
-		//When the robot hits position (18,18), is necessary to save the current time, and change running flag to true, in order to execute all robot states.
+		//When the robot hits position (18,18), it is necessary to save the current time, and change running flag to true, in order to execute all robot states.
 		if(currentX == 18 && currentY == 18 && !this.running){
 			this.startingTime = (new Date().getTime())/1000; 
 			this.running = true;  
