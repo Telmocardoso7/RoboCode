@@ -9,18 +9,14 @@ import robocode.RobotStatus;
 import robocode.ScannedRobotEvent;
 import robocode.StatusEvent;
 import robocode.util.Utils;
-import standardOdometer.*;
-
 //https://streamable.com/t8z0n
 public class OdometerSB extends AdvancedRobot {
 	private class Position<T> {
-		T x, y, distance, angle;
+		T x, y;
 
 		Position(T x, T y, T distance, T angle) {
 			this.x = x;
 			this.y = y;
-			this.distance = distance;
-			this.angle = angle;
 		}
 	}
 
@@ -36,29 +32,33 @@ public class OdometerSB extends AdvancedRobot {
 	long totalDistance = 0;
 	
 	private void goTo(double x, double y) {
-	    /* Calculate the difference bettwen the current position and the target position. */
-	    x = x - getX();
-	    y = y - getY();
+		/* Transform our coordinates into a vector */
+		x -= getX();
+		y -= getY();
 	 
-	    /* Calculate the angle relative to the current heading. */
-	    double goAngle = Utils.normalRelativeAngle(Math.atan2(x, y) - getHeadingRadians());
+		/* Calculate the angle to the target position */
+		double angleToTarget = Math.atan2(x, y);
 	 
-	    /*
-	     * Apply a tangent to the turn this is a cheap way of achieving back to front turn angle as tangents period is PI.
-	     * The output is very close to doing it correctly under most inputs. Applying the arctan will reverse the function
-	     * back into a normal value, correcting the value. The arctan is not needed if code size is required, the error from
-	     * tangent evening out over multiple turns.
-	     */
-	    setTurnRightRadians(Math.atan(Math.tan(goAngle)));
+		/* Calculate the turn required get there */
+		double targetAngle = Utils.normalRelativeAngle(angleToTarget - getHeadingRadians());
 	 
-	    /* 
-	     * The cosine call reduces the amount moved more the more perpendicular it is to the desired angle of travel. The
-	     * hypot is a quick way of calculating the distance to move as it calculates the length of the given coordinates
-	     * from 0.
-	     */
-	    setAhead(Math.cos(goAngle) * Math.hypot(x, y));
+		/* 
+		 * The Java Hypot method is a quick way of getting the length
+		 * of a vector. Which in this case is also the distance between
+		 * our robot and the target location.
+		 */
+		double distance = Math.hypot(x, y);
+	 
+		/* This is a simple method of performing set front as back */
+		double turnAngle = Math.atan(Math.tan(targetAngle));
+		setTurnRightRadians(turnAngle);
+		if(targetAngle == turnAngle) {
+			setAhead(distance);
+		} else {
+			setBack(distance);
+		}
 	}
-
+	
 	public void onStatus(StatusEvent event) {
 		this.status = event.getStatus(); // saving the current robot status, in a attribute global variable.
 		double currentX = status.getX();
@@ -110,65 +110,45 @@ public class OdometerSB extends AdvancedRobot {
 	public double distanceBetween2Points(double x1,double y1,double x2, double y2){
 		return Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
 	}
-
-	private void firstStep() {
-		this.positions = new ArrayList<Position<Double>>();
-		// scan for robots
-		turnRadarRight(360);
-		// get robot thats on top left (2nd quadrant)
+	
+	@SuppressWarnings("rawtypes")
+	public void move(int quadrant) {
 		Position enemyPos = null;
 		for (Position<?> p : this.positions) {
-			if (getQuadrant((double) p.x, (double) p.y) == 2) {
+			if (getQuadrant((double) p.x, (double) p.y) == quadrant) {
 				enemyPos = p;
 			}
 		}
-		// move to that robot
-		if(targetX == 0 && targetY == 0 && enemyPos != null) {			
-			targetX = (double) enemyPos.x - 50;
-			targetY = (double) enemyPos.y + 50;
+		if(targetX == 0 && targetY == 0 && enemyPos != null) {
+			double hipotenusa = Math.sqrt((getWidth() * getWidth())*2);
+		switch (quadrant) {
+		case 2:
+			targetX = (double) enemyPos.x - hipotenusa;
+			targetY = (double) enemyPos.y + hipotenusa;
+			break;
+		case 1:
+			targetX = (double) enemyPos.x + hipotenusa;
+			targetY = (double) enemyPos.y + hipotenusa;
+			break;
+		case 4:
+			targetX = (double) enemyPos.x + hipotenusa;
+			targetY = (double) enemyPos.y - getWidth();
+			break;
+		default:
+			break;
+		}
 		}
 		goTo(targetX, targetY);
-		execute();
-	}
-	
-	private void secondStep() {
-		this.positions = new ArrayList<Position<Double>>();
-		// scan for robots
-		turnRadarRight(360);
-		Position enemyPos = null;
-		for (Position p : this.positions) {
-			if (getQuadrant((double) p.x, (double) p.y) == 1) {
-				enemyPos = p;
-			}
-		}
-		// move to that robot
-		if(targetX == 0 && targetY == 0 && enemyPos != null) {		
-			targetX = (double) enemyPos.x + 50;
-			targetY = (double) enemyPos.y + 50;
-		}
-		goTo(targetX, targetY);
-		execute();
-	}
-	
-	private void thirdStep() {
-		this.positions = new ArrayList<Position<Double>>();
-		// scan for robots
-		turnRadarRight(360);
-		Position enemyPos = null;
-		for (Position p : this.positions) {
-			if (getQuadrant((double) p.x, (double) p.y) == 4) {
-				enemyPos = p;
-			}
-		}
-		// move to that robot
-		if(targetX == 0 && targetY == 0 && enemyPos != null) {			
-			targetX = (double) enemyPos.x + 50;
-			targetY = (double) enemyPos.y - 50;
-		}
-		goTo(targetX, targetY);
-		execute();
 	}
 
+	private void executeStep(int quadrant) {
+		this.positions = new ArrayList<Position<Double>>();
+		// scan for robots
+		turnRadarRight(360);
+		move(quadrant);
+		execute();
+	}
+	
 	public void run() {
 		while (true) {
 			double curX, curY;
@@ -195,15 +175,16 @@ public class OdometerSB extends AdvancedRobot {
 			}
 			// move to top left robot
 			else if (firstStep) {
-				firstStep();
+				executeStep(2);
 				if ((curX - targetX) * (curX - targetX) < 1 && (curY - targetY) * (curY - targetY) < 1) {
 					firstStep = false;
+					goTo(targetX + getWidth(), targetY);
 					secondStep = true;
 					targetX = targetY = 0;
 				}
 			}
 			else if (secondStep) {
-				secondStep();
+				executeStep(1);
 				if ((curX - targetX) * (curX - targetX) < 1 && (curY - targetY) * (curY - targetY) < 1) {
 					secondStep = false;
 					thirdStep = true;
@@ -211,9 +192,10 @@ public class OdometerSB extends AdvancedRobot {
 				}
 			}
 			else if (thirdStep) {
-				thirdStep();
+				executeStep(4);
 				if ((curX - targetX) * (curX - targetX) < 1 && (curY - targetY) * (curY - targetY) < 1) {
 					thirdStep = false;
+					goTo(targetX, targetY - getWidth());
 					goingHome = true;
 					out.println("go home");
 					targetX = targetY = 0;

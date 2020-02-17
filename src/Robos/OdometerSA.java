@@ -3,6 +3,7 @@ package Robos;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.lang.Math;
 
 import robocode.AdvancedRobot;
 import robocode.Condition;
@@ -264,6 +265,7 @@ public class OdometerSA extends AdvancedRobot {
 		double min_distance = this.positions.get(0).distance;
 	    double x = this.positions.get(0).x;
 		double y = this.positions.get(0).y;
+		double hipotenusa = Math.sqrt((getWidth() * getWidth())*2);
 		for (Position<Double> position: this.positions) {
 			if(position.distance < min_distance)
 			{	
@@ -278,13 +280,13 @@ public class OdometerSA extends AdvancedRobot {
 		
 		switch(this.quadrant) {
 		case 1:
-			goTo(x-(2*getWidth()), y+(2*getHeight()));
+			goTo(x-hipotenusa, y+hipotenusa);
 			break;
 		case 2:
-			goTo(x+(2*getWidth()), y+(2*getHeight()));
+			goTo(x+hipotenusa, y+hipotenusa);
 			break;
 		case 3:
-			goTo(x+(2*getWidth()), y-(2*getHeight()));
+			goTo(x+hipotenusa, y-hipotenusa);
 			break;
 		default:
 			break;
