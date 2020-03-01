@@ -9,10 +9,12 @@ import static robocode.util.Utils.normalRelativeAngleDegrees;
 
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
 
 public class Droid2 extends TeamRobot {
 	int movementDirection = 1;
-
+	
+	HashMap<String, Double> energies = new HashMap<>();
 	double oldEnergy = 100;
 
 	public void run() {
@@ -54,8 +56,12 @@ public class Droid2 extends TeamRobot {
 		//apontar para o inimigo
 		double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
 		setTurnGunRightRadians(robocode.util.Utils.normalRelativeAngle(absoluteBearing - getGunHeadingRadians()));
-
-		double energyChange = oldEnergy - e.getEnergy();
+		
+		if(!energies.containsKey(e.getName())) {
+			energies.put(e.getName(), e.getEnergy());
+		}
+		double energyChange = energies.get(e.getName()) - e.getEnergy();
+		
 		if (energyChange > 0 && energyChange <= 3) {
 			// Dodge!
 			movementDirection *= -1;
@@ -70,7 +76,7 @@ public class Droid2 extends TeamRobot {
 			fire(1);
 		}
 
-		oldEnergy = e.getEnergy();
+		energies.put(e.getName(), e.getEnergy());
 	}
 	
 	public void onHitByBullet(HitByBulletEvent e) {
