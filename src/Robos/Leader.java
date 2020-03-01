@@ -6,11 +6,53 @@ import robocode.TeamRobot;
 
 import static robocode.util.Utils.normalRelativeAngleDegrees;
 
+import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.util.Random;
+
+import Robos.robotColors;
 
 public class Leader extends TeamRobot {
+
+	private Color getRandomColor() {
+		Random rand = new Random();
+		float r = rand.nextFloat();
+		float g = rand.nextFloat();
+		float b = rand.nextFloat();
+		return new Color(r, g, b);
+	}
+	
 	public void run() {
+		robotColors teamColors = new robotColors();
+		
+		Color c = getRandomColor();	
+		setBodyColor(Color.red);
+		teamColors.bodyColor = c;
+		
+		c = getRandomColor();
+		setGunColor(c);
+		teamColors.gunColor = c;
+		
+		c = getRandomColor();
+		setRadarColor(c);
+		teamColors.radarColor = c;
+		
+		c = getRandomColor();
+		setScanColor(c);
+		teamColors.scanColor = c;
+		
+		c = getRandomColor();
+		setBulletColor(c.brighter());
+		teamColors.bulletColor = c.brighter();
+		
+		try {
+			broadcastMessage(teamColors);
+		} catch (IOException e) {
+			out.println("Unable to send colors");
+			e.printStackTrace(out);
+		}
+		
 		while (true) {
 			setTurnRadarRight(10000);
 			ahead(1);

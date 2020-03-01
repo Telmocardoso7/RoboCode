@@ -12,15 +12,19 @@ import java.awt.geom.Rectangle2D;
 public class Droid2 extends TeamRobot implements Droid{
 
 	public void run() {
-		setBodyColor(Color.red);
-		setGunColor(Color.red);
-		setRadarColor(Color.red);
-		setScanColor(Color.yellow);
-		setBulletColor(Color.yellow);
 		out.println("Droid2 ready.");
 	}
 	
 	public void onMessageReceived(MessageEvent e) {
+		if(e.getMessage() instanceof robotColors) {
+			robotColors teamColors = (robotColors) e.getMessage();
+			setBodyColor(teamColors.bodyColor);
+			setGunColor(teamColors.gunColor);
+			setRadarColor(teamColors.radarColor);
+			setScanColor(teamColors.scanColor);
+			setBulletColor(teamColors.bulletColor);
+		}
+		
 		// Fire at a point
 		if (e.getMessage() instanceof EnemyPosition) {
 			EnemyPosition p = (EnemyPosition) e.getMessage();
