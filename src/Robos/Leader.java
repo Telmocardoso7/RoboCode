@@ -69,7 +69,7 @@ public class Leader extends TeamRobot {
 		double bearing = e.getBearing();
 
 		try {
-			broadcastMessage(new EnemyPosition(enemyX, enemyY, e.getBearing()));
+			broadcastMessage(new EnemyPosition(enemyX, enemyY, e.getBearing(), e.getEnergy(), e.getDistance(), e.getName()));
 			double theta = Math.toDegrees(Math.atan2(enemyX - this.getX(), enemyY - this.getY()));
 			// Turn gun to target
 			turnGunRight(normalRelativeAngleDegrees(theta - getGunHeading()));
