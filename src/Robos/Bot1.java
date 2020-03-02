@@ -1,29 +1,21 @@
 package Robos;
 
 import robocode.Droid;
+import robocode.HitByBulletEvent;
 import robocode.MessageEvent;
 import robocode.TeamRobot;
 import static robocode.util.Utils.normalRelativeAngleDegrees;
 
-import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 
-public class Droid1 extends TeamRobot implements Droid{
+public class Bot1 extends TeamRobot implements Droid{
 
 	public void run() {
 		out.println("Droid1 ready.");
 	}
 
 	public void onMessageReceived(MessageEvent e) {
-		if(e.getMessage() instanceof robotColors) {
-			robotColors teamColors = (robotColors) e.getMessage();
-			setBodyColor(teamColors.bodyColor);
-			setGunColor(teamColors.gunColor);
-			setRadarColor(teamColors.radarColor);
-			setScanColor(teamColors.scanColor);
-			setBulletColor(teamColors.bulletColor);
-		}
-		
+
 		// Fire at a point
 		if (e.getMessage() instanceof EnemyPosition) {
 			EnemyPosition p = (EnemyPosition) e.getMessage();
@@ -54,6 +46,26 @@ public class Droid1 extends TeamRobot implements Droid{
 				ahead(100);
 			turnRightRadians(turn);
 		}
+		else if(e.getMessage() instanceof robotColors) {
+			robotColors teamColors = (robotColors) e.getMessage();
+			setBodyColor(teamColors.bodyColor);
+			setGunColor(teamColors.gunColor);
+			setRadarColor(teamColors.radarColor);
+			setScanColor(teamColors.scanColor);
+			setBulletColor(teamColors.bulletColor);
+		}
+	}
+	
+	public void onHitByBullet(HitByBulletEvent e){
+		if(e.getBearing() > 0) {
+			turnRight(e.getBearing());
+		}
+		else {
+        	turnLeft(-e.getBearing());	
+		}
+		fire(1);
+		turnRight(90);
+	    ahead(100);
 	}
 }
 

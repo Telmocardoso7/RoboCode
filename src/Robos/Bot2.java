@@ -1,17 +1,12 @@
 package Robos;
 
-import robocode.Droid;
 import robocode.HitByBulletEvent;
 import robocode.MessageEvent;
 import robocode.ScannedRobotEvent;
 import robocode.TeamRobot;
-import static robocode.util.Utils.normalRelativeAngleDegrees;
-
-import java.awt.Color;
-import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 
-public class Droid2 extends TeamRobot {
+public class Bot2 extends TeamRobot {
 	int movementDirection = 1;
 	
 	HashMap<String, Double> energies = new HashMap<>();
